@@ -2,12 +2,14 @@
 1. `git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git`
 2. Datei "webui-user.sh" anpassen: install_dir einkommentieren
 3. Datei "webui-user.sh" anpassen: clone_dir einkommentieren
-3. Datei "webui-user.sh" anpassen: `export COMMANDLINE_ARGS="--ckpt-dir '/nfs/scratch/students/$(whoami)/content'"`
-3. Datei "webui-user.sh" anpassen: TORCH_COMMAND einkommentieren
-4. sbatchJobSD.sh hochladen
-5. `sbatch sbatchJobSD.sh` 
+4. Datei "webui-user.sh" anpassen: `export COMMANDLINE_ARGS="--ckpt-dir '/nfs/scratch/students/$(whoami)/content'"`
+5. In Datei "webui-user.sh" hinzufügen: `export XFORMERS_PACKAGE="xformers==0.0.21"`
+6. Datei "webui-user.sh" anpassen: `venv_dir="/nfs/scratch/students/$(whoami)/venv"`
+7. Datei "webui-user.sh" anpassen: TORCH_COMMAND einkommentieren
+8. runA1111Job.sh hochladen
+9. `sbatch runA1111Job.sh` 
    1. Hinweis: Der Job läuft vor allem beim ersten Mal starten deutlich länger. Der Log kann sich live mit `tail -f <FILE>` angesehen werden.
-6. Lokal: `ssh -N -L 127.0.0.1:7860:127.0.0.1:7860 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
+10. Lokal: `ssh -N -L 127.0.0.1:7860:127.0.0.1:7860 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
 
 Anschließend kann A1111 lokal über 127.0.0.1:7860 aufgerufen werden.
 
@@ -22,3 +24,14 @@ Anschließend kann A1111 lokal über 127.0.0.1:7860 aufgerufen werden.
 1. SDXL Base: Bildgröße = 1024x1024
 2. SDXL Base + Refiner: Bildgröße = 1024x1024, bei Refiner das Modell einstellen, Sampling-Schritte = 30, Switch = 0,6
 3. SDXL Turbo: Sampling Methode = Euler a, Sampling-Schritte = 1, CFG-Scale = 1 
+
+## Training
+1. In Web-UI: "Extensions" -> "Available" -> "Load from:" -> Nach "Dreambooth" suchen -> "Install"
+2. Modell erstellen:
+   1. "Dreambooth" -> "Model" -> "Create"
+   2. Name vergeben
+   3. Checkpoint angeben und Modellart wählen
+   4. "Create Model"
+   5. Modell im Select-Tab auswählen
+3. Training konfigurieren
+4. Concept anlegen
