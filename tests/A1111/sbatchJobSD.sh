@@ -32,8 +32,6 @@ mkdir -p "$CACHE_DIR"
 
 module purge
 module load python/anaconda3 cuda/cuda-12.3
-eval "$(conda shell.bash hook)"
-conda activate py39
 
 ############### Starte eigenen Job hier ################
 srun ./stable-diffusion-webui/webui.sh
