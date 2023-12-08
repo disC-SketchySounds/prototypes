@@ -1,15 +1,14 @@
 # AUTOMATIC1111 - stable-diffusion-webui auf HPC Cluster ausführen
 1. `git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git`
-2. Datei "webui-user.sh" anpassen: install_dir einkommentieren
+2. Datei "webui-user.sh" anpassen: `install_dir="/nfs/scratch/students/$(whoami)"`
 3. Datei "webui-user.sh" anpassen: clone_dir einkommentieren
 4. Datei "webui-user.sh" anpassen: `export COMMANDLINE_ARGS="--ckpt-dir '/nfs/scratch/students/$(whoami)/content'"`
-5. In Datei "webui-user.sh" hinzufügen: `export XFORMERS_PACKAGE="xformers==0.0.21"`
-6. Datei "webui-user.sh" anpassen: `venv_dir="/nfs/scratch/students/$(whoami)/venv"`
-7. Datei "webui-user.sh" anpassen: TORCH_COMMAND einkommentieren
-8. runA1111Job.sh hochladen
-9. `sbatch runA1111Job.sh` 
+5. Datei "webui-user.sh" anpassen: `venv_dir="/nfs/scratch/students/$(whoami)/venv"`
+6. Datei "webui-user.sh" anpassen: TORCH_COMMAND einkommentieren
+7. runA1111Job.sh hochladen
+8. `sbatch runA1111Job.sh` 
    1. Hinweis: Der Job läuft vor allem beim ersten Mal starten deutlich länger. Der Log kann sich live mit `tail -f <FILE>` angesehen werden.
-10. Lokal: `ssh -N -L 127.0.0.1:7860:127.0.0.1:7860 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
+9. Lokal: `ssh -N -L 127.0.0.1:7860:127.0.0.1:7860 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
 
 Anschließend kann A1111 lokal über 127.0.0.1:7860 aufgerufen werden.
 
@@ -25,13 +24,30 @@ Anschließend kann A1111 lokal über 127.0.0.1:7860 aufgerufen werden.
 2. SDXL Base + Refiner: Bildgröße = 1024x1024, bei Refiner das Modell einstellen, Sampling-Schritte = 30, Switch = 0,6
 3. SDXL Turbo: Sampling Methode = Euler a, Sampling-Schritte = 1, CFG-Scale = 1 
 
-## Training
+## Dreambooth-Extension installieren
 1. In Web-UI: "Extensions" -> "Available" -> "Load from:" -> Nach "Dreambooth" suchen -> "Install"
-2. Modell erstellen:
+2. `scancel <JobId>`
+3. `source /nfs/scratch/students/$(whoami)/venv/bin/activate`
+4. `pip install bitsandbytes`
+5. **WORKAROUND Bug in V0.24.0:** In Datei "stable-diffusion-webui/extensions/sd_dreambooth_extension/requirements.txt": `diffusers==0.23.1`
+6. **WORKAROUND Bug in V0.24.0:** `pip uninstall diffusers`
+7. Xformers installieren:
+   1. `cd /nfs/scratch/students/$(whoami)/stable-diffusion-webui`
+   2. `git clone https://github.com/facebookresearch/xformers.git`
+   3. `cd xformers`
+   4. `git submodule update --init --recursive`
+   5. `pip install -r requirements.txt`
+   6. `pip install -e .`
+8. `deactivate`
+9. `sbatch runA1111Job.sh` 
+
+## Training
+Referenz: https://github.com/d8ahazard/sd_dreambooth_extension/wiki/ELI5-Training
+1. Modell erstellen:
    1. "Dreambooth" -> "Model" -> "Create"
    2. Name vergeben
    3. Checkpoint angeben und Modellart wählen
    4. "Create Model"
    5. Modell im Select-Tab auswählen
-3. Training konfigurieren
-4. Concept anlegen
+2. Training konfigurieren
+3. Concept anlegen
