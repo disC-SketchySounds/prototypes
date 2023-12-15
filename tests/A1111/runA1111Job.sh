@@ -28,10 +28,14 @@ export PIP_CACHE_DIR=$CACHE_DIR
 export TRANSFORMERS_CACHE=$CACHE_DIR
 export HF_HOME=$CACHE_DIR
 mkdir -p "$CACHE_DIR"
+
+export LD_LIBRARY_PATH=/nfs/tools/spack/v0.21.0/opt/spack/linux-ubuntu20.04-zen2/gcc-9.4.0/cuda-11.8.0-y3u5n3kohg7mgnff4loe6t2pz6awb7ck/lib64/:$LD_LIBRARY_PATH
+export PATH=/nfs/tools/spack/v0.21.0/opt/spack/linux-ubuntu20.04-zen2/gcc-9.4.0/cuda-11.8.0-y3u5n3kohg7mgnff4loe6t2pz6awb7ck/bin/:$PATH
 ########################################################
 
 module purge
-module load python/anaconda3 cuda/cuda-12.3
+module load python/anaconda3 cuda/cuda-11.8.0
+source /nfs/scratch/students/$(whoami)/venv/bin/activate
 
 ############### Starte eigenen Job hier ################
 srun /nfs/scratch/students/"$USER"/stable-diffusion-webui/webui.sh

@@ -2,7 +2,7 @@ from openai import OpenAI
 import base64
 import requests
 
-api_key = "INSERT-KEY"
+api_key = ""
 
 
 # Function to encode the image
@@ -12,7 +12,7 @@ def encode_image(image_path):
 
 
 # Path to your image
-image_path = "../resources/testPicture.jpg"
+image_path = "resources/Partitur_old_1.jpeg"
 
 # Getting the base64 string
 base64_image = encode_image(image_path)
@@ -29,7 +29,11 @@ response = client.chat.completions.create(
             "content": [
                 {
                     "type": "text",
-                    "text": "Extract the main features and mood of this image to generate a prompt for a generative AI to generate musical scores. Print only the prompt."
+                    "text": """Als musikalische Bilderkennung
+analysiere dieses Bild auf Basis seiner visuellen Eigenschaften, die für die Generierung einer musikalischen Partitur relevant sein könnten
+wobei du die gefundenen Eigenschaften in einer komma-getrennten Liste herausschreibst.
+Achte auf verschiedene Farben und interpretiere diese als eigene Musiker.
+"Gib das Ergebnis in folgendem Format aus: 'FARBE: Eigenschaften'"""
                 },
                 {
                     "type": "image_url",

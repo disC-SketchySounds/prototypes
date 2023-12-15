@@ -1,14 +1,23 @@
 # AUTOMATIC1111 - stable-diffusion-webui auf HPC Cluster ausführen
+
+## Venv erstellen
+1. 
+
+## Einrichtung A1111
 1. `git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git`
 2. Datei "webui-user.sh" anpassen: `install_dir="/nfs/scratch/students/$(whoami)"`
 3. Datei "webui-user.sh" anpassen: clone_dir einkommentieren
 4. Datei "webui-user.sh" anpassen: `export COMMANDLINE_ARGS="--ckpt-dir '/nfs/scratch/students/$(whoami)/content'"`
 5. Datei "webui-user.sh" anpassen: `venv_dir="/nfs/scratch/students/$(whoami)/venv"`
-6. Datei "webui-user.sh" anpassen: TORCH_COMMAND einkommentieren
-7. runA1111Job.sh hochladen
-8. `sbatch runA1111Job.sh` 
+6. `source /nfs/scratch/students/$(whoami)/venv/bin/activate`
+7. `pip install --upgrade pip`
+8. `deactivate`
+9. runA1111Job.sh hochladen
+
+## Ausführung
+1. `sbatch runA1111Job.sh` 
    1. Hinweis: Der Job läuft vor allem beim ersten Mal starten deutlich länger. Der Log kann sich live mit `tail -f <FILE>` angesehen werden.
-9. Lokal: `ssh -N -L 127.0.0.1:7860:127.0.0.1:7860 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
+2. Lokal: `ssh -N -L 127.0.0.1:7860:127.0.0.1:7860 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
 
 Anschließend kann A1111 lokal über 127.0.0.1:7860 aufgerufen werden.
 
@@ -28,7 +37,15 @@ Anschließend kann A1111 lokal über 127.0.0.1:7860 aufgerufen werden.
 1. In Web-UI: "Extensions" -> "Available" -> "Load from:" -> Nach "Dreambooth" suchen -> "Install"
 2. `scancel <JobId>`
 3. `source /nfs/scratch/students/$(whoami)/venv/bin/activate`
-4. `pip install bitsandbytes`
+4. BitsAndBytes installieren:
+   1. `srun --qos=interactive --pty --partition=p2 bash -i`
+   2. `source /nfs/scratch/students/$(whoami)/venv/bin/activate`
+   3. `module load cuda/cuda-11.8.0`
+   4. `python -m pip install bitsandbytes==0.41.2.post2  --prefer-binary`
+   5. Tritt hier ein Fehler auf, folgendes vorher installieren:
+      1. `pip install nvidia-pyindex` 
+      2. `pip install nvidia-cuda-nvcc`
+   6. `exit`
 5. **WORKAROUND Bug in V0.24.0:** In Datei "stable-diffusion-webui/extensions/sd_dreambooth_extension/requirements.txt": `diffusers==0.23.1`
 6. **WORKAROUND Bug in V0.24.0:** `pip uninstall diffusers`
 7. Xformers installieren:
