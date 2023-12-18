@@ -198,7 +198,7 @@ paths:
                     example: 00000000-0000-0000-0000-000000000000
                   status:
                     type: string
-                    enum: [Success, Error, Running analysis, Running generation, Received]
+                    enum: [Success, Error, Running analysis, Running generation, Received, Idling]
                     example: Success
         '404':
           description: Transaction ID not found
