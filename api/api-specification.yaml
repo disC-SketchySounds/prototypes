@@ -58,6 +58,16 @@ paths:
                   message:
                     type: string
                     example: "The input file was not found"
+        '413':
+          description: Image file size exceeds 20 MB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Image file size exceeds 20 MB"
 
   /analysis/{transaction_id}:
     get:
