@@ -39,7 +39,7 @@ paths:
                     type: string
                     example: 00000000-0000-0000-0000-000000000000
         '400':
-          description: Input file was not sent
+          description: Input file was not sent or unable to determine file format
           content:
             application/json:
               schema:
