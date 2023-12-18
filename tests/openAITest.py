@@ -1,8 +1,16 @@
 from openai import OpenAI
 import base64
 import requests
+import configparser
 
-api_key = ""
+# Erstellen eines ConfigParser-Objekts
+config = configparser.ConfigParser()
+
+# Lesen der Property-Datei
+config.read('secure/openAI.properties')
+
+# Zugriff auf die Werte
+api_key = config.get('secure', 'openai.key')
 
 
 # Function to encode the image
@@ -47,7 +55,7 @@ Achte auf verschiedene Farben und interpretiere diese als eigene Musiker.
     max_tokens=300,
 )
 
-print(response)
+print(response.choices[0].message.content)
 
 promptForGeneration = response.choices[0].message.content
 
