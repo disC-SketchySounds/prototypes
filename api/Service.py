@@ -41,7 +41,8 @@ def call_openai_vision(transaction_id):
                     {
                         "type": "text",
                         "text": """Als musikalische Bilderkennung
-    analysiere dieses Bild auf Basis seiner visuellen Eigenschaften, die für die Generierung einer musikalischen Partitur relevant sein könnten
+    analysiere dieses Bild auf Basis seiner visuellen Eigenschaften, die für die Generierung
+    einer musikalischen Partitur relevant sein könnten
     wobei du die gefundenen Eigenschaften in einer komma-getrennten Liste herausschreibst.
     Achte auf verschiedene Farben und interpretiere diese als eigene Musiker.
     "Gib das Ergebnis in folgendem Format aus: 'FARBE: Eigenschaften'"""

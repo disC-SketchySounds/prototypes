@@ -1,4 +1,4 @@
-class Messages():
+class Messages:
     TRANSACTION_NOT_FOUND_OR_INVALID = "Transaction ID not found or invalid"
     NO_INPUT_FILE_SENT = "No input file was sent"
     INPUT_FILE_NOT_FOUND = "The input file was not found"
