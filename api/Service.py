@@ -2,7 +2,7 @@ import configparser
 from openai import OpenAI
 from StatusCodes import StatusCodes
 from Transactions import transactions
-
+from Messages import Messages
 
 config = configparser.ConfigParser()
 config.read('../secure/openAI.properties')
@@ -51,7 +51,7 @@ def call_openai_vision(transaction_id, image):
     except Exception as e:
         print(f'Caught error while calling SDXL: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value
-        transactions[transaction_id]["error"] = "There was an error generating the output file"
+        transactions[transaction_id]["error"] = Messages.OUTPUT_FILE_ERROR
 
 
 def call_sdxl(transaction_id):
@@ -64,7 +64,7 @@ def call_sdxl(transaction_id):
 
 
 def call_sdxl_turbo(transaction_id):
-    transactions[transaction_id]["status"] = "Running generation"
+    transactions[transaction_id]["status"] = StatusCodes.RUNNING_GENERATION.value
     image = transactions[transaction_id]["image"]
     analysis = transactions[transaction_id]["analysis"]
     # TODO: Do something

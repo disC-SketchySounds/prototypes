@@ -10,3 +10,4 @@ class Messages():
     TRANSACTION_IN_ERROR = "The transaction errored out, please use error endpoint"
     NO_CONTENT = "There is no content yet"
     NO_ERRORS = "This transaction has no errors"
+    OUTPUT_FILE_ERROR = "There was an error generating the output file"
