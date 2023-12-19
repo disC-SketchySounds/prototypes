@@ -9,9 +9,9 @@ config.read('../secure/openAI.properties')
 api_key = config.get('secure', 'openai.key')
 
 
-# Image is a parameter because of too long loading times on startup leading to no image that is available
-def call_openai_vision(transaction_id, image):
+def call_openai_vision(transaction_id):
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_ANALYSIS.value
+    image = transactions[transaction_id]["image"]
 
     client = OpenAI(
         api_key=api_key

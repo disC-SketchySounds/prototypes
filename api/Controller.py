@@ -1,3 +1,4 @@
+import time
 import openai
 from PIL import Image
 from io import BytesIO
@@ -61,16 +62,18 @@ def upload_image():
     }
 
     # Start async task
-    thread = Thread(target=async_call_openai_vision, args=(transaction_id, img_base64))
+    thread = Thread(target=async_call_openai_vision, args=[transaction_id])
     thread.start()
 
     return jsonify({"message": Messages.IMAGE_RECEIVED, "transaction_id": transaction_id}), 200
 
 
 # Wrapper function for asynchronous execution
-def async_call_openai_vision(transaction_id, img_base64):
+def async_call_openai_vision(transaction_id):
+    # Long loading times on startup leading to no image is available -> Wait 1 second
+    time.sleep(1)
     try:
-        call_openai_vision(transaction_id, img_base64)
+        call_openai_vision(transaction_id)
     except openai.BadRequestError as e:
         print(f'Caught BadRequestError while calling OpenAI Vision: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value
