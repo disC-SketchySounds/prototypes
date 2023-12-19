@@ -9,8 +9,7 @@ from threading import Thread
 from StatusCodes import StatusCodes
 from Service import call_openai_vision
 from Transactions import transactions
-
-NOT_FOUND_OR_INVALID = "Transaction ID not found or invalid"
+from Messages import Messages
 
 app = Flask(__name__)
 
@@ -21,19 +20,19 @@ contextRoot = f"/api/{apiVersion}"
 @app.route(f'{contextRoot}/upload', methods=['POST'])
 def upload_image():
     if 'inputFile' not in request.files:
-        return jsonify({"message": "No input file was sent"}), 400
+        return jsonify({"message": Messages.NO_INPUT_FILE_SENT}), 400
 
     input_file = request.files['inputFile']
 
     if input_file.filename == '':
-        return jsonify({"message": "The input file was not found"}), 404
+        return jsonify({"message": Messages.INPUT_FILE_NOT_FOUND}), 404
 
     # Convert image to PIL
     image = Image.open(input_file.stream)
 
     image_format = image.format
     if not image_format:
-        return jsonify({"message": "Unable to determine the image format"}), 400
+        return jsonify({"message": Messages.UNABLE_DETERMINING_IMAGE_FORMAT}), 400
 
     image_format = image_format.lower()
     if image_format not in ['png', 'jpeg', 'gif', 'webp']:
@@ -47,7 +46,7 @@ def upload_image():
     img_byte = buffered.getvalue()
 
     if len(img_byte) > 20 * 1024 * 1024:
-        return jsonify({"message": "Image file size exceeds 20 MB"}), 413
+        return jsonify({"message": Messages.FILE_SIZE_EXCEEDING}), 413
 
     # Convert Bytes object to image encoded with Base64
     img_base64 = base64.b64encode(img_byte).decode('utf-8')
@@ -65,7 +64,7 @@ def upload_image():
     thread = Thread(target=async_call_openai_vision, args=(transaction_id, img_base64))
     thread.start()
 
-    return jsonify({"message": "Image received", "transaction_id": transaction_id}), 200
+    return jsonify({"message": Messages.IMAGE_RECEIVED, "transaction_id": transaction_id}), 200
 
 
 # Wrapper function for asynchronous execution
@@ -75,23 +74,23 @@ def async_call_openai_vision(transaction_id, img_base64):
     except openai.BadRequestError as e:
         print(f'Caught BadRequestError while calling OpenAI Vision: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value
-        transactions[transaction_id]["error"] = "OpenAI denied the request. Maybe unallowed content?"
+        transactions[transaction_id]["error"] = Messages.OPENAI_DENIAL
     except Exception as e:
         print(f'Caught error while calling OpenAI Vision: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value
-        transactions[transaction_id]["error"] = "There was an error processing the input file"
+        transactions[transaction_id]["error"] = Messages.ERROR_INPUT_FILE
 
 
 @app.route(f'{contextRoot}/analysis/<transaction_id>', methods=['GET'])
 def get_analysis(transaction_id):
     if transaction_id not in transactions:
-        return jsonify({"error": NOT_FOUND_OR_INVALID}), 404
+        return jsonify({"error": Messages.TRANSACTION_NOT_FOUND_OR_INVALID}), 404
 
     status = transactions[transaction_id]["status"]
     if status == StatusCodes.ERROR.value:
-        return jsonify({"message": "The transaction errored out, please use error endpoint"}), 409
+        return jsonify({"message": Messages.TRANSACTION_IN_ERROR}), 409
     if status == StatusCodes.RUNNING_ANALYSIS.value or status == StatusCodes.RECEIVED.value:
-        return jsonify({"message": "There is no content yet"}), 204
+        return jsonify({"message": Messages.NO_CONTENT}), 204
 
     return jsonify({"transaction_id": transaction_id, "analysis": transactions[transaction_id]["analysis"]}), 200
 
@@ -99,16 +98,16 @@ def get_analysis(transaction_id):
 @app.route(f'{contextRoot}/score/<transaction_id>', methods=['GET'])
 def get_score(transaction_id):
     if transaction_id not in transactions:
-        return jsonify({"error": NOT_FOUND_OR_INVALID}), 404
+        return jsonify({"error": Messages.TRANSACTION_NOT_FOUND_OR_INVALID}), 404
 
     status = transactions[transaction_id]["status"]
     if status == StatusCodes.ERROR.value:
-        return jsonify({"message": "The transaction errored out, please use error endpoint"}), 409
+        return jsonify({"message": Messages.TRANSACTION_IN_ERROR}), 409
     if (status == StatusCodes.RUNNING_ANALYSIS.value or
             status == StatusCodes.RUNNING_GENERATION.value or
             status == StatusCodes.RECEIVED.value or
             status == StatusCodes.IDLING.value):
-        return jsonify({"message": "There is no content yet"}), 204
+        return jsonify({"message": Messages.NO_CONTENT}), 204
 
     return jsonify({"transaction_id": transaction_id, "score": transactions[transaction_id]["score"]}), 200
 
@@ -116,7 +115,7 @@ def get_score(transaction_id):
 @app.route(f'{contextRoot}/status/<transaction_id>', methods=['GET'])
 def get_status(transaction_id):
     if transaction_id not in transactions:
-        return jsonify({"error": NOT_FOUND_OR_INVALID}), 404
+        return jsonify({"error": Messages.TRANSACTION_NOT_FOUND_OR_INVALID}), 404
 
     return jsonify({"transaction_id": transaction_id, "status": transactions[transaction_id]["status"]}), 200
 
@@ -124,11 +123,11 @@ def get_status(transaction_id):
 @app.route(f'{contextRoot}/error/<transaction_id>', methods=['GET'])
 def get_error(transaction_id):
     if transaction_id not in transactions:
-        return jsonify({"error": NOT_FOUND_OR_INVALID}), 404
+        return jsonify({"error": Messages.TRANSACTION_NOT_FOUND_OR_INVALID}), 404
 
     status = transactions[transaction_id]["status"]
     if status != StatusCodes.ERROR:
-        return jsonify({"message": "This transaction has no errors"}), 409
+        return jsonify({"message": Messages.NO_ERRORS}), 409
 
     return jsonify({"transaction_id": transaction_id, "error": transactions[transaction_id]["error"]}), 200
 
