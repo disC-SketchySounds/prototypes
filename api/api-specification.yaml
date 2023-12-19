@@ -1,5 +1,5 @@
 # To generate an HTML from this spec with redoc-cli
-# Run `redoc-cli bundle -o index.html api-specification.yaml`
+# Run `npx @redocly/cli build-docs -o index.html api/api-specification.yaml`
 openapi: 3.0.0
 info:
   title: SketchySounds API
@@ -73,7 +73,7 @@ paths:
 
   /upload-fast:
     post:
-      summary: Uploads a sketch and generates a transaction id. The image generation is much faster with this endpoint
+      summary: Uploads a sketch and generates a transaction id. The image generation is much faster with this endpoint. But the quality is more poor
       requestBody:
         required: true
         content:
