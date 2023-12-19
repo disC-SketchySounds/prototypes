@@ -20,12 +20,13 @@ open_ai_client = OpenAI(api_key=api_key)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def call_openai_vision(transaction_id):
+def call_openai_vision(transaction_id, fast_processing):
     """
     Calls OpenAI Vision to run an image analysis
 
     Args:
-        transaction_id (str): The ID of the transaction for which the analysis should be executed
+        :param transaction_id: The ID of the transaction for which the analysis should be executed
+        :param fast_processing: Bool flag indicating whether SDXL (False) or SDXL Turbo (True) should be used
     """
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_ANALYSIS.value
     image = transactions[transaction_id]["image"]
@@ -65,7 +66,10 @@ def call_openai_vision(transaction_id):
     transactions[transaction_id]["status"] = StatusCodes.IDLING.value
 
     try:
-        call_sdxl(transaction_id)
+        if fast_processing:
+            call_sdxl_turbo(transaction_id)
+        else:
+            call_sdxl(transaction_id)
     except Exception as e:
         logging.error(f'Caught error while calling SDXL: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value

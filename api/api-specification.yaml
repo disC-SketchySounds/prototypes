@@ -1,4 +1,4 @@
-# To generate a HTML from this spec with redoc-cli
+# To generate an HTML from this spec with redoc-cli
 # Run `redoc-cli bundle -o index.html api-specification.yaml`
 openapi: 3.0.0
 info:
@@ -16,6 +16,64 @@ paths:
   /upload:
     post:
       summary: Uploads a sketch and generates a transaction id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                sketch:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: The image was received successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Image received
+                  transaction_id:
+                    type: string
+                    example: 00000000-0000-0000-0000-000000000000
+        '400':
+          description: Input file was not sent or unable to determine file format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No input file was sent"
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "The input file was not found"
+        '413':
+          description: Image file size exceeds 20 MB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Image file size exceeds 20 MB"
+
+  /upload-fast:
+    post:
+      summary: Uploads a sketch and generates a transaction id. The image generation is much faster with this endpoint
       requestBody:
         required: true
         content:

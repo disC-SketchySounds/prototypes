@@ -23,6 +23,15 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 @app.route(f'{contextRoot}/upload', methods=['POST'])
 def upload_image():
+    return handle_uploaded_image(False)
+
+
+@app.route(f'{contextRoot}/upload-fast', methods=['POST'])
+def upload_image_fast():
+    return handle_uploaded_image(True)
+
+
+def handle_uploaded_image(fast_processing):
     logging.info('Received upload request')
     if 'inputFile' not in request.files:
         logging.debug('Cancelling upload request because of no input file sent')
@@ -71,18 +80,19 @@ def upload_image():
     }
 
     # Start async task
-    thread = Thread(target=async_call_openai_vision, args=[transaction_id])
+    thread = Thread(target=async_call_openai_vision, args=(transaction_id, fast_processing))
     thread.start()
 
     return jsonify({"message": Messages.IMAGE_RECEIVED, "transaction_id": transaction_id}), 200
 
 
 # Wrapper function for asynchronous execution
-def async_call_openai_vision(transaction_id):
-    # Long loading times on startup leading to no image is available -> Wait 1 second
-    time.sleep(1)
+def async_call_openai_vision(transaction_id, fast_processing):
+    # Long loading times on startup leading to no image is available -> Waiting time
+    time.sleep(2)
     try:
-        call_openai_vision(transaction_id)
+        call_openai_vision(transaction_id, fast_processing)
+        logging.info('✅ Generation process done')
     except openai.BadRequestError as e:
         logging.error(f'Caught BadRequestError while calling OpenAI Vision: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value
@@ -91,8 +101,6 @@ def async_call_openai_vision(transaction_id):
         logging.error(f'Caught error while calling OpenAI Vision: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value
         transactions[transaction_id]["error"] = Messages.ERROR_INPUT_FILE
-
-    logging.info('✅ Generation process done')
 
 
 @app.route(f'{contextRoot}/analysis/<transaction_id>', methods=['GET'])
