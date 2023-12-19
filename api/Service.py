@@ -5,24 +5,34 @@ from Transactions import transactions
 from Messages import Messages
 import logging
 
-config = configparser.ConfigParser()
-config.read('../secure/openAI.properties')
-api_key = config.get('secure', 'openai.key')
 
+def get_api_key():
+    """
+    Reads the API key from the config file
+    """
+    config = configparser.ConfigParser()
+    config.read('../secure/openAI.properties')
+    return config.get('secure', 'openai.key')
+
+
+api_key = get_api_key()
+open_ai_client = OpenAI(api_key=api_key)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def call_openai_vision(transaction_id):
+    """
+    Calls OpenAI Vision to run an image analysis
+
+    Args:
+        transaction_id (str): The ID of the transaction for which the analysis should be executed
+    """
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_ANALYSIS.value
     image = transactions[transaction_id]["image"]
 
-    client = OpenAI(
-        api_key=api_key
-    )
-
     logging.info('Calling OpenAI Vision')
 
-    response = client.chat.completions.create(
+    response = open_ai_client.chat.completions.create(
         model="gpt-4-vision-preview",
         messages=[
             {
@@ -62,6 +72,12 @@ def call_openai_vision(transaction_id):
 
 
 def call_sdxl(transaction_id):
+    """
+    Calls the local Stable Diffusion XL (SDXL) model to run an image generation
+
+    Args:
+        transaction_id (str): The ID of the transaction for which the generation should be executed
+    """
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_GENERATION.value
     image = transactions[transaction_id]["image"]
     analysis = transactions[transaction_id]["analysis"]
@@ -77,6 +93,12 @@ def call_sdxl(transaction_id):
 
 
 def call_sdxl_turbo(transaction_id):
+    """
+    Calls the local Stable Diffusion XL (SDXL) Turbo model to run an image generation
+
+    Args:
+        transaction_id (str): The ID of the transaction for which the generation should be executed
+    """
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_GENERATION.value
     image = transactions[transaction_id]["image"]
     analysis = transactions[transaction_id]["analysis"]
