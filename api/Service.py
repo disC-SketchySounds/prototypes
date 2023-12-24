@@ -4,6 +4,7 @@ from StatusCodes import StatusCodes
 from Transactions import transactions
 from Messages import Messages
 import logging
+from diffusers import StableDiffusionPipeline
 
 
 def get_api_key():
@@ -17,6 +18,10 @@ def get_api_key():
 
 api_key = get_api_key()
 open_ai_client = OpenAI(api_key=api_key)
+
+sd_model = "../models/SDXL.ckpt"
+sd_turbo_model = "../models/SDXLTurbo.ckpt"
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
@@ -89,11 +94,17 @@ def call_sdxl(transaction_id):
 
     logging.info('Calling SDXL')
 
-    # TODO: Do something
+    pipeline = StableDiffusionPipeline.from_single_file(sd_model)
+    image = pipeline(
+        f"""
+        Create a musical score with the following attributes: {analysis}     
+        """
+    ).images[
+        0]
 
     logging.debug('SDXL Request successful')
 
-    transactions[transaction_id]["score"] = ""
+    transactions[transaction_id]["score"] = image
     transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
 
 
@@ -110,9 +121,15 @@ def call_sdxl_turbo(transaction_id):
 
     logging.info('Calling SDXL Turbo')
 
-    # TODO: Do something
+    pipeline = StableDiffusionPipeline.from_single_file(sd_turbo_model)
+    image = pipeline(
+        f"""
+            Create a musical score with the following attributes: {analysis}     
+            """
+    ).images[
+        0]
 
     logging.debug('SDXL Turbo Request successful')
 
-    transactions[transaction_id]["score"] = ""
+    transactions[transaction_id]["score"] = image
     transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
