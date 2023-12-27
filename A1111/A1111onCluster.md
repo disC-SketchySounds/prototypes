@@ -1,7 +1,13 @@
 # AUTOMATIC1111 - stable-diffusion-webui auf HPC Cluster ausführen
 
-## Venv erstellen
-1. 
+## Venv erstellen (Version Python 3.10)
+1. `module load python/anaconda3`
+2. `conda create --name py310 python=3.10`
+3. `conda activate py310`
+4. `which python` -> Pfad kopieren
+5. `conda deactivate`
+6. `virtualenv --python="/home/$(whoami)/.conda/envs/py310/bin/python" "/nfs/scratch/students/$(whoami)/venv"`
+7. `source /nfs/scratch/students/$(whoami)/venv/bin/activate`
 
 ## Einrichtung A1111
 1. `git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git`
