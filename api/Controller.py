@@ -2,7 +2,7 @@ import time
 import openai
 from PIL import Image
 from io import BytesIO
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import uuid
 import base64
 from threading import Thread
@@ -139,7 +139,7 @@ def get_score(transaction_id):
         logging.debug('Cancelling score request because transaction has no content')
         return jsonify({"message": Messages.NO_CONTENT}), 204
 
-    return jsonify({"transaction_id": transaction_id, "score": transactions[transaction_id]["score"]}), 200
+    return send_file(transactions[transaction_id]["score"]), 200
 
 
 @app.route(f'{contextRoot}/status/<transaction_id>', methods=['GET'])
@@ -168,4 +168,4 @@ def get_error(transaction_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=4242)
