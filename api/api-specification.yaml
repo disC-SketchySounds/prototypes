@@ -9,7 +9,7 @@ info:
     email: kremlingph95027@th-nuernberg.de
 
 servers:
-  - url: http://localhost:5000
+  - url: http://localhost:4242
     description: Local server
 
 paths:
@@ -203,17 +203,10 @@ paths:
         '200':
           description: Generated musical score
           content:
-            application/json:
+            image/jpeg:
               schema:
-                type: object
-                properties:
-                  transaction_id:
-                    type: string
-                    example: 00000000-0000-0000-0000-000000000000
-                  score:
-                    type: string
-                    format: binary
-                    example: ...
+                type: string
+                format: binary
         '204':
           description: Transaction is running
           content:

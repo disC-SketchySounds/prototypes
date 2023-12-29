@@ -139,7 +139,12 @@ def get_score(transaction_id):
         logging.debug('Cancelling score request because transaction has no content')
         return jsonify({"message": Messages.NO_CONTENT}), 204
 
-    return send_file(transactions[transaction_id]["score"]), 200
+    return send_file(
+        transactions[transaction_id]["score"],
+        mimetype='image/jpeg',
+        as_attachment=True,
+        download_name='score.jpg'
+    ), 200
 
 
 @app.route(f'{contextRoot}/status/<transaction_id>', methods=['GET'])
