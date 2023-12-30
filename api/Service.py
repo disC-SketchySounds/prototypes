@@ -6,8 +6,8 @@ from Messages import Messages
 import logging
 from diffusers import StableDiffusionXLPipeline
 import torch
-
 import io
+
 
 def get_api_key():
     """
@@ -22,8 +22,8 @@ def get_api_key():
 api_key = get_api_key()
 open_ai_client = OpenAI(api_key=api_key)
 
-sd_model = "../models/sd_xl_base_1.0.safetensors"
-sd_turbo_model = "../models/sd_xl_turbo_1.0.safetensors"
+sd_model = "/nfs/scratch/students/kremlingph95027/content/sd_xl_base_1.0.safetensors"
+sd_turbo_model = "/nfs/scratch/students/kremlingph95027/content/sd_xl_turbo_1.0_fp16.safetensors"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -105,13 +105,16 @@ def call_sdxl(transaction_id):
     pipe.enable_xformers_memory_efficient_attention()
 
     prompt = f"""
-            Create a musical score with the following attributes: {analysis}     
-            """
+        Create a musical score with the following attributes: {analysis}     
+        """
     image = pipe(prompt=prompt).images[0]
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='JPEG')
+    img_byte_arr.seek(0)
 
     logging.debug('SDXL Request successful')
 
-    transactions[transaction_id]["score"] = image
+    transactions[transaction_id]["score"] = img_byte_arr
     transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
 
 
@@ -136,11 +139,14 @@ def call_sdxl_turbo(transaction_id):
     pipe.enable_xformers_memory_efficient_attention()
 
     prompt = f"""
-                Create a musical score with the following attributes: {analysis}     
-                """
+            Create a musical score with the following attributes: {analysis}     
+            """
     image = pipe(prompt=prompt).images[0]
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='JPEG')
+    img_byte_arr.seek(0)
 
     logging.debug('SDXL Turbo Request successful')
 
-    transactions[transaction_id]["score"] = image
+    transactions[transaction_id]["score"] = img_byte_arr
     transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
