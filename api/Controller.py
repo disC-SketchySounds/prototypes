@@ -88,8 +88,6 @@ def handle_uploaded_image(fast_processing):
 
 # Wrapper function for asynchronous execution
 def async_call_openai_vision(transaction_id, fast_processing):
-    # Long loading times on startup leading to no image is available -> Waiting time
-    time.sleep(2)
     try:
         call_openai_vision(transaction_id, fast_processing)
         logging.info('✅ Generation process done')

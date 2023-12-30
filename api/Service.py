@@ -5,7 +5,9 @@ from Transactions import transactions
 from Messages import Messages
 import logging
 from diffusers import StableDiffusionXLPipeline
+import torch
 
+import io
 
 def get_api_key():
     """
@@ -95,13 +97,17 @@ def call_sdxl(transaction_id):
 
     logging.info('Calling SDXL')
 
-    pipeline = StableDiffusionXLPipeline.from_single_file(sd_model, use_safetensors=True)
-    image = pipeline(
-        f"""
-        Create a musical score with the following attributes: {analysis}     
-        """
-    ).images[
-        0]
+    pipe = StableDiffusionXLPipeline.from_single_file(
+        sd_model, torch_dtype=torch.float16, variant="fp16", use_safetensors=True
+    )
+    pipe.to("cuda")
+    pipe.enable_model_cpu_offload()
+    pipe.enable_xformers_memory_efficient_attention()
+
+    prompt = f"""
+            Create a musical score with the following attributes: {analysis}     
+            """
+    image = pipe(prompt=prompt).images[0]
 
     logging.debug('SDXL Request successful')
 
@@ -122,12 +128,17 @@ def call_sdxl_turbo(transaction_id):
 
     logging.info('Calling SDXL Turbo')
 
-    pipeline = StableDiffusionXLPipeline.from_single_file(sd_turbo_model)
-    image = pipeline(
-        f"""
-            Create a musical score with the following attributes: {analysis}     
-            """
-    ).images[0]
+    pipe = StableDiffusionXLPipeline.from_single_file(
+        sd_turbo_model, torch_dtype=torch.float16, variant="fp16", use_safetensors=True
+    )
+    pipe.to("cuda")
+    pipe.enable_model_cpu_offload()
+    pipe.enable_xformers_memory_efficient_attention()
+
+    prompt = f"""
+                Create a musical score with the following attributes: {analysis}     
+                """
+    image = pipe(prompt=prompt).images[0]
 
     logging.debug('SDXL Turbo Request successful')
 

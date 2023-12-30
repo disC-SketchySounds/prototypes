@@ -22,7 +22,14 @@
    2. `source /nfs/scratch/students/$(whoami)/venv39/bin/activate`
    3. `module load cuda/cuda-11.8.0`
    4. `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
+   5. `pip install pytorch_lightning`
 9. `pip install omegaconf`
+10. xformers installieren:
+    1. `srun --qos=interactive --pty --partition=p0 bash -i`
+    2. `source /nfs/scratch/students/$(whoami)/venv39/bin/activate`
+    3. `module load cuda/cuda-11.8.0`
+    4. `pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu118`
+11. `pip install accelerate`
 
 ## Einrichtung
 1. Ordner "api" & "runAPI.sh" hochladen
