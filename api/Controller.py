@@ -21,6 +21,11 @@ contextRoot = f"/api/{apiVersion}"
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
+@app.route(f'{contextRoot}/healthcheck', methods=['GET'])
+def health_check():
+    return jsonify({"status": "up"}), 200
+
+
 @app.route(f'{contextRoot}/upload', methods=['POST'])
 def upload_image():
     return handle_uploaded_image(False)
@@ -171,4 +176,4 @@ def get_error(transaction_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=4242)
+    app.run(debug=True, host='0.0.0.0', port=4242)
