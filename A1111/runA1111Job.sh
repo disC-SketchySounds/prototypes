@@ -5,10 +5,10 @@
 #SBATCH --partition=p2            # Verwendete Partition (z.B. p0, p1, p2 oder all)
 #SBATCH --time=08:00:00           # Gesamtlimit für Laufzeit des Jobs (Format: HH:MM:SS)
 #SBATCH --cpus-per-task=8         # Rechenkerne pro Task
-#SBATCH --mem=32G                 # Gesamter Hauptspeicher pro Knoten
+#SBATCH --mem=40G                 # Gesamter Hauptspeicher pro Knoten
 #SBATCH --gres=gpu:1              # Gesamtzahl GPUs pro Knoten
 #SBATCH --qos=basic               # Quality-of-Service
-#SBATCH --mail-type=ALL           # Art des Mailversands (gültige Werte z.B. ALL, BEGIN, END, FAIL oder REQUEUE)
+#SBATCH --mail-type=FAIL           # Art des Mailversands (gültige Werte z.B. ALL, BEGIN, END, FAIL oder REQUEUE)
 #SBATCH --mail-user=kremlingph95027@th-nuernberg.de # Emailadresse für Statusmails
 
 echo "=================================================================="

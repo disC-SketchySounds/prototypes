@@ -174,7 +174,7 @@ def get_error(transaction_id):
     status = transactions[transaction_id]["status"]
     if status != StatusCodes.ERROR:
         logging.debug('Cancelling error request because transaction is not in error')
-        return jsonify({"message": Messages.NO_ERRORS}), 409
+        return jsonify({"error": Messages.NO_ERRORS}), 409
 
     return jsonify({"transaction_id": transaction_id, "error": transactions[transaction_id]["error"]}), 200
 
