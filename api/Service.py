@@ -5,6 +5,7 @@ from Transactions import transactions
 from Messages import Messages
 import logging
 from diffusers import StableDiffusionXLPipeline
+from compel import Compel, ReturnedEmbeddingsType
 import torch
 import io
 
@@ -103,11 +104,16 @@ def call_sdxl(transaction_id):
     pipe.to("cuda")
     pipe.enable_model_cpu_offload()
     pipe.enable_xformers_memory_efficient_attention()
+    compel = Compel(tokenizer=[pipe.tokenizer, pipe.tokenizer_2],
+                    text_encoder=[pipe.text_encoder, pipe.text_encoder_2],
+                    returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
+                    requires_pooled=[False, True])
 
     prompt = f"""
         Create a musical score with the following attributes: {analysis}     
         """
-    image = pipe(prompt=prompt).images[0]
+    conditioning, pooled = compel(prompt)
+    image = pipe(prompt_embeds=conditioning, pooled_prompt_embeds=pooled, num_inference_steps=30).images[0]
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format='JPEG')
     img_byte_arr.seek(0)
