@@ -30,6 +30,7 @@
     3. `module load cuda/cuda-11.8.0`
     4. `pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu118`
 11. `pip install accelerate`
+12. `pip install compel`
 
 ## Einrichtung
 1. Ordner "api" & "runAPI.sh" hochladen
