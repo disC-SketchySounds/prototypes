@@ -1,5 +1,4 @@
 import io
-import time
 import openai
 from PIL import Image
 from io import BytesIO

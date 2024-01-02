@@ -94,7 +94,6 @@ def call_sdxl(transaction_id):
         transaction_id (str): The ID of the transaction for which the generation should be executed
     """
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_GENERATION.value
-    image = transactions[transaction_id]["image"]
     analysis = transactions[transaction_id]["analysis"]
 
     logging.info('Calling SDXL')
@@ -134,7 +133,6 @@ def call_sdxl_turbo(transaction_id):
         transaction_id (str): The ID of the transaction for which the generation should be executed
     """
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_GENERATION.value
-    image = transactions[transaction_id]["image"]
     analysis = transactions[transaction_id]["analysis"]
 
     logging.info('Calling SDXL Turbo')
