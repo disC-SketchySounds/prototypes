@@ -1,3 +1,4 @@
+import base64
 import configparser
 from openai import OpenAI
 from StatusCodes import StatusCodes
@@ -117,11 +118,12 @@ def call_sdxl(transaction_id):
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format='JPEG')
     img_byte_arr.seek(0)
+    base64_encoded_image = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+
+    transactions[transaction_id]["score"] = base64_encoded_image
+    transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
 
     logging.debug('SDXL Request successful')
-
-    transactions[transaction_id]["score"] = img_byte_arr
-    transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
 
 
 def call_sdxl_turbo(transaction_id):
@@ -151,8 +153,9 @@ def call_sdxl_turbo(transaction_id):
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format='JPEG')
     img_byte_arr.seek(0)
+    base64_encoded_image = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+
+    transactions[transaction_id]["score"] = base64_encoded_image
+    transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
 
     logging.debug('SDXL Turbo Request successful')
-
-    transactions[transaction_id]["score"] = img_byte_arr
-    transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value

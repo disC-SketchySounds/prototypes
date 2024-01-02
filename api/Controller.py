@@ -1,3 +1,4 @@
+import io
 import time
 import openai
 from PIL import Image
@@ -142,8 +143,12 @@ def get_score(transaction_id):
         logging.debug('Cancelling score request because transaction has no content')
         return jsonify({"message": Messages.NO_CONTENT}), 204
 
+    base64_encoded_image = transactions[transaction_id]["score"]
+    image_data = base64.b64decode(base64_encoded_image)
+    img_byte_arr = io.BytesIO(image_data)
+
     return send_file(
-        transactions[transaction_id]["score"],
+        img_byte_arr,
         mimetype='image/jpeg',
         as_attachment=True,
         download_name='score.jpg'
