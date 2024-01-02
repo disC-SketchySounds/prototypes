@@ -27,7 +27,7 @@ paths:
                   type: string
                   format: binary
       responses:
-        '202':
+        '200':
           description: The image was received successful
           content:
             application/json:
@@ -85,7 +85,7 @@ paths:
                   type: string
                   format: binary
       responses:
-        '202':
+        '200':
           description: The image was received successful
           content:
             application/json:
