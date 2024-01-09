@@ -43,8 +43,10 @@
 3. Pfade in Service.py ändern 
 
 ## Ausführung
-1. `sbatch runAPI.sh` 
+1. Auf dem Cluster: `sbatch runAPI.sh` 
    1. Hinweis: Der Log kann sich live mit `tail -f <FILE>` angesehen werden.
-2. Lokal: `ssh -N -L 127.0.0.1:4242:127.0.0.1:4242 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
+2. Lokal: `ssh -N -L 0.0.0.0:4242:127.0.0.1:4242 <USER>@<NODE>.informatik.fh-nuernberg.de -i ~/.ssh/<KEY>`
 
-Anschließend kann die API lokal über 127.0.0.1:4242 aufgerufen werden.
+Anschließend kann die API lokal über <your-ip-addr>:4242 aufgerufen werden.
+
+(Deine IP-Adresse kannst du auf macOS mit `ipconfig getifaddr en0` herausfinden)
