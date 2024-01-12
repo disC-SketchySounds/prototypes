@@ -1,6 +1,8 @@
 import base64
 import configparser
 from io import BytesIO
+
+import requests
 from torchvision.transforms import ToTensor
 
 from PIL import Image
@@ -175,7 +177,8 @@ def call_dall_e(transaction_id):
     logging.info('Calling DALL-E')
 
     prompt = f"""
-            Create a musical score with the following attributes: {analysis}     
+            Schwarzer Hintergrund
+            {analysis}
             """
 
     response = open_ai_client.images.generate(
@@ -188,9 +191,33 @@ def call_dall_e(transaction_id):
 
     image_url = response.data[0].url
 
-    print(image_url)
+    logging.info(f"Got answer form DALL-E with url {image_url}")
 
-    transactions[transaction_id]["score"] = image_url
-    transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
+    store_image(image_url, transaction_id)
 
     logging.debug('DALL-E Request successful')
+
+
+def store_image(url, transaction_id):
+    """
+    Stores a remote image in transactions with size of 512x512
+
+    Args:
+        url (str): The URL where the picture is located
+        transaction_id (str): The ID of the transaction
+    """
+    response = requests.get(url)
+    if response.status_code == 200:
+        image_bytes = io.BytesIO(response.content)
+        image = Image.open(image_bytes)
+        resized_image = image.resize((512, 512))
+        buffered = io.BytesIO()
+        resized_image.save(buffered, format="JPEG")
+        base64_encoded_image = base64.b64encode(buffered.getvalue()).decode()
+
+        transactions[transaction_id]["score"] = base64_encoded_image
+        transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
+    else:
+        logging.error("Error while downloading image")
+        transactions[transaction_id]["error"] = Messages.ERROR_DOWNLOADING_FILE
+        transactions[transaction_id]["status"] = StatusCodes.ERROR.value

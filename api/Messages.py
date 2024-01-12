@@ -11,3 +11,4 @@ class Messages:
     NO_CONTENT = "There is no content yet"
     NO_ERRORS = "This transaction has no errors"
     OUTPUT_FILE_ERROR = "There was an error generating the output file"
+    ERROR_DOWNLOADING_FILE = "There was an error while downloading the generated image"
