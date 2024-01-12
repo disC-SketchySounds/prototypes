@@ -1,12 +1,16 @@
 import base64
 import configparser
+from io import BytesIO
+from torchvision.transforms import ToTensor
+
+from PIL import Image
 from openai import OpenAI
 from StatusCodes import StatusCodes
 from Transactions import transactions
 from Messages import Messages
 import logging
-from diffusers import StableDiffusionXLPipeline
-from compel import Compel, ReturnedEmbeddingsType
+from diffusers import StableDiffusionImg2ImgPipeline
+from compel import Compel
 import torch
 import io
 
@@ -24,19 +28,22 @@ def get_api_key():
 api_key = get_api_key()
 open_ai_client = OpenAI(api_key=api_key)
 
-sd_model = "/nfs/scratch/students/kremlingph95027/content/sd_xl_base_1.0.safetensors"
-sd_turbo_model = "/nfs/scratch/students/kremlingph95027/content/sd_xl_turbo_1.0_fp16.safetensors"
+sd_model = "/nfs/scratch/students/kremlingph95027/content/v1-5-pruned-emaonly.safetensors"
+lora_folder = "/nfs/scratch/students/kremlingph95027/stable-diffusion-webui/models/Lora"
+lora_weights_1_name = "v15Tune_Lora_17800.safetensors"
+lora_weights_2_name = "15Tune_Lora_17100.safetensors"
+lora_weights_3_name = "v15Tune_Lora_12800.safetensors"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def call_openai_vision(transaction_id, fast_processing):
+def call_openai_vision(transaction_id, use_dall_e):
     """
     Calls OpenAI Vision to run an image analysis
 
     Args:
         :param transaction_id: The ID of the transaction for which the analysis should be executed
-        :param fast_processing: Bool flag indicating whether SDXL (False) or SDXL Turbo (True) should be used
+        :param use_dall_e: Bool flag indicating whether SD (False) or DALL-E (True) should be used
     """
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_ANALYSIS.value
     image = transactions[transaction_id]["image"]
@@ -56,7 +63,10 @@ def call_openai_vision(transaction_id, fast_processing):
     einer musikalischen Partitur relevant sein könnten
     wobei du die gefundenen Eigenschaften in einer komma-getrennten Liste herausschreibst.
     Achte auf verschiedene Farben und interpretiere diese als eigene Musiker.
-    "Gib das Ergebnis in folgendem Format aus: 'FARBE: Eigenschaften'"""
+    Achte besonders auf folgende Eigenschaften und baue sie falls passend ein: abstrakt, chaotisch, duester, freundlich,
+    geschwungen, gleichmaessig, hoch, minimalistisch, tief. Beschränke dich jedoch nicht auf diese Eigenschaften.
+    Gib das Ergebnis in folgendem Format aus: 'Farbe Form (Position): Eigenschaften'. 
+    #Beispiel: 'Gelbe Linie (oben rechts): hoch'"""
                     },
                     {
                         "type": "image_url",
@@ -71,24 +81,31 @@ def call_openai_vision(transaction_id, fast_processing):
     )
 
     logging.debug('OpenAI Vision Request successful')
-
+    """
+    Schwarzer Hintergrund
+Grüne Linien (Mitte): chaotisch, geschwungen, freundlich
+Blaue Linie/Gekritzel (unten Mitte): chaotisch, abstrakt
+Lila Streifen (mittig): gleichmäßig, düster
+Blaue Flecken (überall): abstrakt, minimalistisch
+Gelber Blitz (oben rechts): hoch
+    """
     transactions[transaction_id]["analysis"] = response.choices[0].message.content
     transactions[transaction_id]["status"] = StatusCodes.IDLING.value
 
     try:
-        if fast_processing:
-            call_sdxl_turbo(transaction_id)
+        if use_dall_e:
+            call_dall_e(transaction_id)
         else:
-            call_sdxl(transaction_id)
+            call_stable_diffusion(transaction_id)
     except Exception as e:
-        logging.error(f'Caught error while calling SDXL: {e}')
+        logging.error(f'Caught error while calling SD: {e}')
         transactions[transaction_id]["status"] = StatusCodes.ERROR.value
         transactions[transaction_id]["error"] = Messages.OUTPUT_FILE_ERROR
 
 
-def call_sdxl(transaction_id):
+def call_stable_diffusion(transaction_id):
     """
-    Calls the local Stable Diffusion XL (SDXL) model to run an image generation
+    Calls the local Stable Diffusion model to run an image generation
 
     Args:
         transaction_id (str): The ID of the transaction for which the generation should be executed
@@ -96,24 +113,44 @@ def call_sdxl(transaction_id):
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_GENERATION.value
     analysis = transactions[transaction_id]["analysis"]
 
-    logging.info('Calling SDXL')
+    logging.info('Calling SD')
 
-    pipe = StableDiffusionXLPipeline.from_single_file(
+    pipe = StableDiffusionImg2ImgPipeline.from_single_file(
         sd_model, torch_dtype=torch.float16, variant="fp16", use_safetensors=True
     )
     pipe.to("cuda")
     pipe.enable_model_cpu_offload()
     pipe.enable_xformers_memory_efficient_attention()
-    compel = Compel(tokenizer=[pipe.tokenizer, pipe.tokenizer_2],
-                    text_encoder=[pipe.text_encoder, pipe.text_encoder_2],
-                    returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
-                    requires_pooled=[False, True])
+
+    #pipe.load_lora_weights(lora_folder, weight_name=lora_weights_1_name, adapter_name=lora_weights_1_name)
+    #pipe.load_lora_weights(lora_folder, weight_name=lora_weights_2_name, adapter_name=lora_weights_2_name)
+    #pipe.load_lora_weights(lora_folder, weight_name=lora_weights_3_name, adapter_name=lora_weights_3_name)
+
+    #pipe.set_adapters([lora_weights_1_name, lora_weights_2_name, lora_weights_3_name], adapter_weights=[1.0, 1.0, 1.0])
 
     prompt = f"""
-        Create a musical score with the following attributes: {analysis}     
+        Schwarzer Hintergrund
+        {analysis}
         """
-    conditioning, pooled = compel(prompt)
-    image = pipe(prompt_embeds=conditioning, pooled_prompt_embeds=pooled, num_inference_steps=30).images[0]
+
+    compel = Compel(tokenizer=pipe.tokenizer,
+                    text_encoder=pipe.text_encoder)
+    prompt_embeds = compel(prompt)
+
+    image = transactions[transaction_id]["image"]
+    img_bytes = base64.b64decode(image)
+    img_buffer = BytesIO(img_bytes)
+    image = Image.open(img_buffer)
+    transform = ToTensor()
+    tensor_image = transform(image)
+
+    image = pipe(
+        prompt_embeds=prompt_embeds,
+        image=tensor_image,
+        strength=0.75,
+        guidance_scale=7.5,
+#        cross_attention_kwargs={"scale": 1.0}
+    ).images[0]
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format='JPEG')
     img_byte_arr.seek(0)
@@ -122,12 +159,12 @@ def call_sdxl(transaction_id):
     transactions[transaction_id]["score"] = base64_encoded_image
     transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
 
-    logging.debug('SDXL Request successful')
+    logging.debug('SD Request successful')
 
 
-def call_sdxl_turbo(transaction_id):
+def call_dall_e(transaction_id):
     """
-    Calls the local Stable Diffusion XL (SDXL) Turbo model to run an image generation
+    Calls DALL-E for image generation
 
     Args:
         transaction_id (str): The ID of the transaction for which the generation should be executed
@@ -135,30 +172,25 @@ def call_sdxl_turbo(transaction_id):
     transactions[transaction_id]["status"] = StatusCodes.RUNNING_GENERATION.value
     analysis = transactions[transaction_id]["analysis"]
 
-    logging.info('Calling SDXL Turbo')
-
-    pipe = StableDiffusionXLPipeline.from_single_file(
-        sd_turbo_model, torch_dtype=torch.float16, variant="fp16", use_safetensors=True
-    )
-    pipe.to("cuda")
-    pipe.enable_model_cpu_offload()
-    pipe.enable_xformers_memory_efficient_attention()
-    compel = Compel(tokenizer=[pipe.tokenizer, pipe.tokenizer_2],
-                    text_encoder=[pipe.text_encoder, pipe.text_encoder_2],
-                    returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
-                    requires_pooled=[False, True])
+    logging.info('Calling DALL-E')
 
     prompt = f"""
             Create a musical score with the following attributes: {analysis}     
             """
-    conditioning, pooled = compel(prompt)
-    image = pipe(prompt_embeds=conditioning, pooled_prompt_embeds=pooled, num_inference_steps=30).images[0]
-    img_byte_arr = io.BytesIO()
-    image.save(img_byte_arr, format='JPEG')
-    img_byte_arr.seek(0)
-    base64_encoded_image = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
 
-    transactions[transaction_id]["score"] = base64_encoded_image
+    response = open_ai_client.images.generate(
+        model="dall-e-3",
+        prompt=prompt,
+        size="1024x1024",
+        quality="standard",
+        n=1,
+    )
+
+    image_url = response.data[0].url
+
+    print(image_url)
+
+    transactions[transaction_id]["score"] = image_url
     transactions[transaction_id]["status"] = StatusCodes.SUCCESS.value
 
-    logging.debug('SDXL Turbo Request successful')
+    logging.debug('DALL-E Request successful')

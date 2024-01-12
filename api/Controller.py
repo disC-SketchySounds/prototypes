@@ -31,12 +31,12 @@ def upload_image():
     return handle_uploaded_image(False)
 
 
-@app.route(f'{contextRoot}/upload-fast', methods=['POST'])
-def upload_image_fast():
+@app.route(f'{contextRoot}/upload-dall-e', methods=['POST'])
+def upload_image_dall_e():
     return handle_uploaded_image(True)
 
 
-def handle_uploaded_image(fast_processing):
+def handle_uploaded_image(use_dall_e):
     logging.info('Received upload request')
     if 'inputFile' not in request.files:
         logging.debug('Cancelling upload request because of no input file sent')
@@ -85,7 +85,7 @@ def handle_uploaded_image(fast_processing):
     }
 
     # Start async task
-    thread = Thread(target=async_call_openai_vision, args=(transaction_id, fast_processing))
+    thread = Thread(target=async_call_openai_vision, args=(transaction_id, use_dall_e))
     thread.start()
 
     return jsonify({"message": Messages.IMAGE_RECEIVED, "transaction_id": transaction_id}), 200
