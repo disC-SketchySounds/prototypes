@@ -20,6 +20,8 @@ contextRoot = f"/api/{apiVersion}"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+last_transaction_id = None
+
 
 @app.route(f'{contextRoot}/healthcheck', methods=['GET'])
 def health_check():
@@ -37,6 +39,7 @@ def upload_image_dall_e():
 
 
 def handle_uploaded_image(use_dall_e):
+    global last_transaction_id
     logging.info('Received upload request')
     if 'inputFile' not in request.files:
         logging.debug('Cancelling upload request because of no input file sent')
@@ -76,6 +79,7 @@ def handle_uploaded_image(use_dall_e):
     img_base64 = base64.b64encode(img_byte).decode('utf-8')
 
     transaction_id = str(uuid.uuid4())
+    last_transaction_id = transaction_id
     transactions[transaction_id] = {
         "status": StatusCodes.RECEIVED.value,
         "image": img_base64,
@@ -152,6 +156,14 @@ def get_score(transaction_id):
         as_attachment=True,
         download_name='score.jpg'
     ), 200
+
+
+@app.route(f'{contextRoot}/last-score', methods=['GET'])
+def get_last_request():
+    if last_transaction_id is None or last_transaction_id not in transactions:
+        return jsonify({"message": Messages.NO_LAST_TRANSACTION_FOUND}), 404
+
+    return get_score(last_transaction_id)
 
 
 @app.route(f'{contextRoot}/status/<transaction_id>', methods=['GET'])

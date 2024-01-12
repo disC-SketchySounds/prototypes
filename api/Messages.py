@@ -12,3 +12,4 @@ class Messages:
     NO_ERRORS = "This transaction has no errors"
     OUTPUT_FILE_ERROR = "There was an error generating the output file"
     ERROR_DOWNLOADING_FILE = "There was an error while downloading the generated image"
+    NO_LAST_TRANSACTION_FOUND = "The last transaction was not found"
